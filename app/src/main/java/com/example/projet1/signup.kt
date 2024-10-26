@@ -63,6 +63,9 @@ class signup : ComponentActivity() {
 fun signup(name: String, modifier: Modifier = Modifier) {
     val context= LocalContext.current
     var text by remember { mutableStateOf("") }
+    var text2 by remember { mutableStateOf("") }
+    var text3 by remember { mutableStateOf("") }
+    var text4 by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -104,8 +107,8 @@ fun signup(name: String, modifier: Modifier = Modifier) {
         )
         Spacer(modifier = Modifier.height(20.dp))
         TextField(
-            value = text,
-            onValueChange = { newText -> text = newText },
+            value = text2,
+            onValueChange = { newText -> text2 = newText },
             label = { Text("Email") },
             modifier = Modifier
                 .fillMaxWidth()
@@ -113,8 +116,8 @@ fun signup(name: String, modifier: Modifier = Modifier) {
         )
         Spacer(modifier = Modifier.height(20.dp))
         TextField(
-            value = text,
-            onValueChange = { newText -> text = newText },
+            value = text3,
+            onValueChange = { newText -> text3 = newText },
             label = { Text("Password") },
             modifier = Modifier
                 .fillMaxWidth()
@@ -122,8 +125,8 @@ fun signup(name: String, modifier: Modifier = Modifier) {
         )
         Spacer(modifier = Modifier.height(20.dp))
         TextField(
-            value = text,
-            onValueChange = { newText -> text = newText },
+            value = text4,
+            onValueChange = { newText -> text4 = newText },
             label = { Text("Confirm Password") },
             modifier = Modifier
                 .fillMaxWidth()

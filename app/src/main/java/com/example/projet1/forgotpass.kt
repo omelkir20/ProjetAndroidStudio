@@ -119,6 +119,7 @@ fun forgotp(name: String, modifier: Modifier = Modifier) {
 
 
     }
+
 }
 
 @Preview(showBackground = true)

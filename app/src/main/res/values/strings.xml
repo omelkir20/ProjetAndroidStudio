@@ -3,4 +3,6 @@
     <string name="title_activity_login">login</string>
     <string name="title_activity_forgotpass">forgotpass</string>
     <string name="title_activity_signup">signup</string>
+    <string name="title_activity_home_page">homePage</string>
+    <string name="title_activity_detail">Detail</string>
 </resources>
