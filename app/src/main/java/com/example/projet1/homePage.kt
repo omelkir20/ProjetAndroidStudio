@@ -1,41 +1,22 @@
 package com.example.projet1
 
+import Flower
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items // Import items here
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -44,8 +25,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.projet1.data.Flower
-import com.example.projet1.ui.theme.Detail
 import com.example.projet1.ui.theme.Projet1Theme
 
 class homePage : ComponentActivity() {
@@ -55,9 +34,7 @@ class homePage : ComponentActivity() {
         setContent {
             Projet1Theme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    ListeComposable(
-                        modifier = Modifier.padding(innerPadding),
-                    )
+                    ListeComposable(modifier = Modifier.padding(innerPadding))
                 }
             }
         }
@@ -66,23 +43,83 @@ class homePage : ComponentActivity() {
 
 @Composable
 fun ListeComposable(modifier: Modifier = Modifier) {
-    val listFlower = remember { mutableListOf(
-        Flower(titre = "Tulip", imageUrl = R.drawable.tulip),
-        Flower(titre = "Jasmine", imageUrl = R.drawable.jasmine),
-        Flower(titre = "Lily", imageUrl = R.drawable.lily),
-        Flower(titre = "Sunflower", imageUrl = R.drawable.sunflowers)
+    val listFlower = remember { mutableStateListOf(
+        Flower(titre = "Tulip", imageUrl = R.drawable.tulip, description = ""),
+        Flower(titre = "Jasmine", imageUrl = R.drawable.jasmine, description = ""),
+        Flower(titre = "Lily", imageUrl = R.drawable.lily, description = ""),
+        Flower(titre = "Sunflower", imageUrl = R.drawable.sunflowers, description = "")
     ) }
-    LazyColumn(modifier = modifier.fillMaxSize()) {
-        items(listFlower) { fl ->
-            ItemComposable(flower = fl)
+
+    Column(modifier = modifier.fillMaxSize()) {
+        AddFlowerCard(listFlower = listFlower)
+        LazyColumn(modifier = Modifier.weight(1f)) {
+            items(listFlower) { fl ->
+                ItemComposable(flower = fl)
+            }
         }
     }
 }
 
+@Composable
+fun AddFlowerCard(listFlower: MutableList<Flower>, modifier: Modifier = Modifier) {
+    var name by remember { mutableStateOf("") }
+    var image by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
+
+    Card(
+        modifier = modifier
+            .padding(16.dp)
+            .fillMaxWidth(),
+        shape = RoundedCornerShape(10.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text("Add a New Flower", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            TextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Flower Name") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            TextField(
+                value = image,
+                onValueChange = { image = it },
+                label = { Text("Image Resource ID or URL") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            TextField(
+                value = description,
+                onValueChange = { description = it },
+                label = { Text("Description") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Button(
+                onClick = {
+                    if (name.isNotEmpty() && description.isNotEmpty()) {
+                        listFlower.add(
+                            Flower(
+                                titre = name,
+                                imageUrl = image.toIntOrNull() ?: R.drawable.placeholder,
+                                description = description
+                            )
+                        )
+                        name = ""
+                        image = ""
+                        description = ""
+                    }
+                },
+                modifier = Modifier.align(Alignment.End)
+            ) {
+                Text("Add")
+            }
+        }
+    }
+}
 
 @Composable
 fun ItemComposable(modifier: Modifier = Modifier, flower: Flower) {
-    var fl by remember { mutableStateOf("") }
     val context = LocalContext.current
     Card(
         modifier = modifier
@@ -91,6 +128,7 @@ fun ItemComposable(modifier: Modifier = Modifier, flower: Flower) {
                 val intent = Intent(context, Detail::class.java)
                 intent.putExtra("titre", flower.titre)
                 intent.putExtra("image", flower.imageUrl)
+                intent.putExtra("description", flower.description)
                 context.startActivity(intent)
             }
     ) {
@@ -101,7 +139,11 @@ fun ItemComposable(modifier: Modifier = Modifier, flower: Flower) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = flower.titre, fontSize = 24.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 10.dp),fontFamily = FontFamily.Serif,
+                text = flower.titre,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 10.dp),
+                fontFamily = FontFamily.Serif
             )
             Image(
                 painter = painterResource(id = flower.imageUrl),
@@ -111,14 +153,13 @@ fun ItemComposable(modifier: Modifier = Modifier, flower: Flower) {
                     .clip(RoundedCornerShape(50.dp))
                     .padding(8.dp)
                     .height(250.dp),
-                contentScale = ContentScale.Crop,
-
-                )
-
+                contentScale = ContentScale.Crop
+            )
+            Text(text = flower.description, fontSize = 16.sp)
         }
     }
-
 }
+
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview4() {

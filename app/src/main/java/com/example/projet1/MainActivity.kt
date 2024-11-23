@@ -3,6 +3,7 @@ package com.example.projet1
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -34,6 +35,7 @@ import androidx.compose.ui.input.pointer.HistoricalChange
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.example.projet1.data.DB
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,13 +56,13 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun Login(name: String, modifier: Modifier = Modifier) {
     val context = LocalContext.current
-    val email="omelkirrebei22@gmail.com"
-    val pass="202003"
     val prefs = context.getSharedPreferences("MyAppPrefs", Context.MODE_PRIVATE)
+    val dbase = DB(context)
     var isLoggedIn by remember { mutableStateOf(prefs.getBoolean("isLoggedIn", false)) }
-    var text by remember { mutableStateOf("") }
-    var text2 by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
     var showMessage by remember { mutableStateOf(false) }
+
 
 
     Column(
@@ -76,8 +78,8 @@ fun Login(name: String, modifier: Modifier = Modifier) {
         )
         Spacer(modifier = Modifier.height(40.dp))
         TextField(
-            value = text,
-            onValueChange = { newText -> text = newText },
+            value = username,
+            onValueChange = { username = it },
             label = { Text("User name") },
             modifier = Modifier
                 .fillMaxWidth()
@@ -90,8 +92,8 @@ fun Login(name: String, modifier: Modifier = Modifier) {
         }
         Spacer(modifier = Modifier.height(20.dp))
         TextField(
-            value = text2,
-            onValueChange = { newText -> text2 = newText },
+            value = password,
+            onValueChange = { password = it },
             label = { Text("Password") },
             modifier = Modifier
                 .fillMaxWidth()
@@ -104,15 +106,25 @@ fun Login(name: String, modifier: Modifier = Modifier) {
         Spacer(modifier = Modifier.height(40.dp))
         Button(
             onClick = {
-                showMessage = text.isEmpty() && text2.isEmpty()
-                if (text == email && text2 == pass) {
-                    // Save login state in SharedPreferences
-                    val editor = prefs.edit()
-                    editor.putBoolean("isLoggedIn", true)
-                    editor.apply()
-                }else{
-                    val intent = Intent(context,homePage::class.java)
-                    context.startActivity(intent)
+
+                showMessage = username.isEmpty() || password.isEmpty()
+
+                if (!showMessage) {
+                    val user = dbase.getUserByName(username)
+
+                    if (user != null && user["mdp"] == password) {
+
+                        val editor = prefs.edit()
+                        editor.putBoolean("isLoggedIn", true)
+                        editor.apply()
+
+                        val intent = Intent(context, homePage::class.java)
+                        context.startActivity(intent)
+                    } else {
+                        Toast.makeText(context, "Invalid username or password!", Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    Toast.makeText(context, "Please fill in all fields!", Toast.LENGTH_SHORT).show()
                 }
             },
             modifier = Modifier
@@ -125,11 +137,12 @@ fun Login(name: String, modifier: Modifier = Modifier) {
         ) {
             Text("Login", fontSize = 18.sp, fontWeight = FontWeight.Bold)
         }
+
         Spacer(modifier = Modifier.height(20.dp))
 
         Button(
             onClick = {
-                val intent = Intent(context, signup::class.java)
+                val intent = Intent(context, Signup::class.java)
                 context.startActivity(intent)
 
             },

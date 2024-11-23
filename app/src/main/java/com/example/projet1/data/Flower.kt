@@ -1,7 +1,5 @@
-package com.example.projet1.data
-
-data class Flower (
-    val titre:String,
-    val imageUrl:Int,
-    )
-
+data class Flower(
+    val titre: String,
+    val imageUrl: Int,
+    val description: String
+)
