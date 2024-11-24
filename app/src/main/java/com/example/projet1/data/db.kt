@@ -49,6 +49,16 @@ class DB(context: Context) : SQLiteOpenHelper(context, "flowers.db", null, 1) {
             null
         }
     }
+    fun updateFlower(oldFlower: Flower, newFlower: Flower, flowers: MutableList<Flower>) {
+        val index = flowers.indexOf(oldFlower)
+        if (index != -1) {
+            flowers[index] = newFlower
+        }
+    }
+
+    fun deleteFlower(flower: Flower, flowers: MutableList<Flower>) {
+        flowers.remove(flower)
+    }
     fun insertFlower(name: String, imageUrl: Int, description: String) {
         val db = writableDatabase
         val values = ContentValues().apply {

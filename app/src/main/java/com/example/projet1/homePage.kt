@@ -17,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -44,17 +45,38 @@ class homePage : ComponentActivity() {
 @Composable
 fun ListeComposable(modifier: Modifier = Modifier) {
     val listFlower = remember { mutableStateListOf(
-        Flower(titre = "Tulip", imageUrl = R.drawable.tulip, description = ""),
-        Flower(titre = "Jasmine", imageUrl = R.drawable.jasmine, description = ""),
-        Flower(titre = "Lily", imageUrl = R.drawable.lily, description = ""),
-        Flower(titre = "Sunflower", imageUrl = R.drawable.sunflowers, description = "")
+        Flower(titre = "Tulip", imageUrl = R.drawable.tulip, description = "The tulip is a colorful spring flower with a cup-shaped bloom and smooth green leaves. It comes in many colors like red, yellow, pink, and purple. Originally from Central Asia, tulips became famous in Europe, especially in the Netherlands. They are popular in gardens and bouquets."),
+        Flower(titre = "Jasmine", imageUrl = R.drawable.jasmine, description = "Jasmine is a fragrant flowering plant known for its beautiful, delicate white or yellow flowers. It is often associated with warm climates and is commonly found in gardens and landscapes. The flowers bloom in clusters and release a sweet, heady scent, especially at night, making them popular in perfumes and essential oils."),
+        Flower(titre = "Lily", imageUrl = R.drawable.lily, description = "The lily is a striking flowering plant known for its large, showy blooms and elegant shape. Lilies come in various colors, including white, orange, pink, yellow, and purple, and they often have a lovely fragrance. They are commonly found in gardens and are popular in floral arrangements.\n"),
+        Flower(titre = "Sunflower", imageUrl = R.drawable.sunflowers, description = "The sunflower is a bright, cheerful flower known for its large, round face that follows the sun across the sky. Characterized by its vibrant yellow petals and a dark center filled with seeds, the sunflower is both beautiful and functional. It grows tall on sturdy stems and can reach heights of over six feet. Sunflowers are not only popular in gardens but are also cultivated for their seeds and oil, which are used in cooking and snacks. Symbolically, sunflowers represent happiness, warmth, and loyalty, making them a favorite choice for bouquets and floral arrangements.")
     ) }
+
+    var flowerToEdit by remember { mutableStateOf<Flower?>(null) }
 
     Column(modifier = modifier.fillMaxSize()) {
         AddFlowerCard(listFlower = listFlower)
+
+        flowerToEdit?.let { flower ->
+            EditFlowerDialog(
+                flower = flower,
+                onDismiss = { flowerToEdit = null },
+                onSave = { updatedFlower ->
+                    val index = listFlower.indexOf(flower)
+                    if (index != -1) {
+                        listFlower[index] = updatedFlower
+                    }
+                    flowerToEdit = null
+                }
+            )
+        }
+
         LazyColumn(modifier = Modifier.weight(1f)) {
             items(listFlower) { fl ->
-                ItemComposable(flower = fl)
+                ItemComposable(
+                    flower = fl,
+                    onEdit = { flowerToEdit = it },
+                    onDelete = { listFlower.remove(it) }
+                )
             }
         }
     }
@@ -119,7 +141,7 @@ fun AddFlowerCard(listFlower: MutableList<Flower>, modifier: Modifier = Modifier
 }
 
 @Composable
-fun ItemComposable(modifier: Modifier = Modifier, flower: Flower) {
+fun ItemComposable(modifier: Modifier = Modifier, flower: Flower, onEdit: (Flower) -> Unit, onDelete: (Flower) -> Unit) {
     val context = LocalContext.current
     Card(
         modifier = modifier
@@ -128,7 +150,6 @@ fun ItemComposable(modifier: Modifier = Modifier, flower: Flower) {
                 val intent = Intent(context, Detail::class.java)
                 intent.putExtra("titre", flower.titre)
                 intent.putExtra("image", flower.imageUrl)
-                intent.putExtra("description", flower.description)
                 context.startActivity(intent)
             }
     ) {
@@ -156,8 +177,66 @@ fun ItemComposable(modifier: Modifier = Modifier, flower: Flower) {
                 contentScale = ContentScale.Crop
             )
             Text(text = flower.description, fontSize = 16.sp)
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Button(
+                    onClick = { onEdit(flower) },
+                    modifier = Modifier.weight(1f).padding(end = 8.dp)
+                ) {
+                    Text("Modifier")
+                }
+                Button(
+                    onClick = { onDelete(flower) },
+                    modifier = Modifier.weight(1f).padding(start = 8.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                ) {
+                    Text("Supprimer")
+                }
+            }
         }
     }
+}
+
+@Composable
+fun EditFlowerDialog(flower: Flower, onDismiss: () -> Unit, onSave: (Flower) -> Unit) {
+    var name by remember { mutableStateOf(flower.titre) }
+    var description by remember { mutableStateOf(flower.description) }
+    var image by remember { mutableStateOf(flower.imageUrl.toString()) }
+
+    AlertDialog(
+        onDismissRequest = { onDismiss() },
+        title = { Text("Modifier la Fleur") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextField(value = name, onValueChange = { name = it }, label = { Text("Nom de la fleur") })
+                TextField(value = description, onValueChange = { description = it }, label = { Text("Description") })
+                TextField(value = image, onValueChange = { image = it }, label = { Text("Image Resource ID") })
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    onSave(
+                        flower.copy(
+                            titre = name,
+                            description = description,
+                            imageUrl = image.toIntOrNull() ?: R.drawable.placeholder
+                        )
+                    )
+                }
+            ) {
+                Text("Enregistrer")
+            }
+        },
+        dismissButton = {
+            Button(onClick = onDismiss) {
+                Text("Annuler")
+            }
+        }
+    )
 }
 
 @Preview(showBackground = true)
